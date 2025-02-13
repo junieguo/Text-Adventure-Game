@@ -1,8 +1,19 @@
+import Foundation
+
+/// The `Item` protocol that represents a game item.
+public protocol Item {
+    var name: String { get }
+    var description: String { get }
+    
+    func take(context: AdventureGameContext)
+    func use(context: AdventureGameContext)
+}
+
 struct Location {
     let name: String
     let description: String
     var exits: [String: String] // Direction: Location Name
-    var item: String?
+    var item: Item?
     var npc: String?
 }
 
@@ -12,11 +23,20 @@ enum GameState {
     case lost
 }
 
-protocol Interactable {
-    func interact(with item: String?, context: AdventureGameContext)
+struct Fragment: Item {
+    var name: String
+    var description: String
+    
+    func take(context: AdventureGameContext) {
+        context.write("You take the \(name).")
+    }
+    
+    func use(context: AdventureGameContext) {
+        context.write("You cannot use the \(name) directly. It must be placed at the Heartstone pedestal.")
+    }
 }
 
-struct TheShatteredKingdom: AdventureGame, Interactable {
+struct TheShatteredKingdom: AdventureGame {
     var title: String {
         return "The Shattered Kingdom"
     }
@@ -43,7 +63,7 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
             In the clearing ahead, a massive stone guardian stands before a pedestal. Upon it rests a fragment, glowing with a pale silver light.
             """,
             exits: ["west": "Ruined Village"],
-            item: nil,
+            item: Fragment(name: "Left Fragment", description: "A glowing fragment, a piece of the Heartstone."),
             npc: "Forest Guardian"
         ),
         "Crystal Caverns": Location(
@@ -53,7 +73,7 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
             At the cavern’s center, a glowing crystal pillar holds the second fragment. Shadows flicker at the edges of your vision.
             """,
             exits: ["north": "Ruined Village"],
-            item: "Right Fragment",
+            item: Fragment(name: "Right Fragment", description: "A glowing fragment, a piece of the Heartstone."),
             npc: "Shadow Beasts"
         ),
         "Dark Tower": Location(
@@ -122,7 +142,7 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
         guard let location = locations[currentLocation] else { return }
         context.write(location.description)
         if let item = location.item {
-            context.write("A \(item) lies here.")
+            context.write("A \(item.name) lies here.")
         }
         if let npc = location.npc {
             context.write("You see \(npc) here.")
@@ -141,12 +161,13 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
     }
 
     private mutating func takeItem(context: AdventureGameContext) {
-        guard let location = locations[currentLocation], let item = location.item else {
+        guard var location = locations[currentLocation], let item = location.item else {
             context.write("There's nothing to take here.")
             return
         }
-        inventory.append(item)
-        context.write("You take the \(item).")
+        inventory.append(item.name)
+        item.take(context: context)
+        location.item = nil
     }
 
     private mutating func useItem(context: AdventureGameContext) {
@@ -168,7 +189,7 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
     }
 
     private mutating func talkToNPC(input: String, context: AdventureGameContext) {
-        guard let location = locations[currentLocation], let npc = location.npc else {
+        guard var location = locations[currentLocation], let npc = location.npc else {
             context.write("There is no one to talk to here.")
             return
         }
@@ -199,7 +220,7 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
                 context.write("""
                 🦊 Guardian: "I see you seek the fragments. Take the Left Fragment and be on your way."
                 """)
-                locations["Enchanted Forest"]?.item = "Left Fragment"
+                locations["Enchanted Forest"]?.item = Fragment(name: "Left Fragment", description: "A glowing fragment, a piece of the Heartstone.")
                 context.write("You see the Left Fragment.")
             }
         case "Shadow Beasts":
@@ -231,11 +252,8 @@ struct TheShatteredKingdom: AdventureGame, Interactable {
     private func helpCommand(context: AdventureGameContext) {
         context.write("Available commands: north, south, east, west, take, use, talk, help")
     }
-
-    func interact(with item: String?, context: AdventureGameContext) {}
 }
 
 // Leave this line in - this line sets up the UI you see on the right.
 // Update this if you rename your AdventureGame implementation.
 TheShatteredKingdom.run()
-
