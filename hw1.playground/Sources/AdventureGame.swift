@@ -13,6 +13,7 @@ public protocol AdventureGame {
     /// - Parameter context: The object you use to write output and end the game.
     mutating func start(context: AdventureGameContext)
     
+    
     /// Runs when the user enters a line of input.
     /// - Parameters:
     ///   - input: The line the user typed.
