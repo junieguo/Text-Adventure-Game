@@ -1,7 +1,5 @@
 # *The Shattered Kingdom*
 
-*For instructions, consult the [CIS 1951 website](https://www.seas.upenn.edu/~cis1951/25sp/assignments/hw/hw1).*
-
 ## Explanations
 
 **What locations/rooms does your game have?**
@@ -58,10 +56,6 @@
 Optionals are used to handle cases where an item or NPC might not exist in a particular location. For instance:
 - `Location` has optional properties such as `item` and `npc`, because not all locations will have an item or NPC to interact with.
 
-
-**What extra credit features did you implement, if any?**
-
-N/A
 
 ## Endings
 
